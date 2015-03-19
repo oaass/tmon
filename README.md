@@ -35,7 +35,7 @@ These are the modules used by TMon
 
 Before you can use start using TMon you need to do the following
 
-* Download and extract GeoIP.dat from [maxmind](http://dev.maxmind.com/geoip/legacy/geolite/) ([direct download](http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz))
+* Download and extract GeoIP.dat from [maxmind](http://dev.maxmind.com/geoip/legacy/geolite/) ([direct download](http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz))
 * Rename config-dist.cfg to config.cfg
 * Change the value of *filepath* under the *geolocation* section to point to your GeoIP.dat file
 
