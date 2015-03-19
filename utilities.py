@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import datetime
-
+from termcolor import colored
+import sys
 
 def log(message, severity='log'):
     severity_levels = ['debug', 'warning', 'error', 'fatal', 'log']
@@ -60,3 +61,13 @@ def get_default_port_service(port):
         return services[port]
     except:
         return 'N/A'
+
+
+def stdout(message, replace=[], attrs={'color': None}):
+
+    output = message.format(*replace)
+
+    if attrs['color'] is not None:
+        output = colored(output, attrs['color'])
+
+    sys.stdout.write(output)
