@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 import argparse
-import datetime
 import threatmonitor
 import ConfigParser
-from time import sleep
-from utilities import *
+from utilities import log
+from utilities import flush_log
+from utilities import error
+
 
 def main(args, config):
     if args.debug:
@@ -19,9 +20,9 @@ if __name__ == '__main__':
         config = ConfigParser.ConfigParser()
         config.readfp(open('config.cfg'))
     except IOError, e:
-        error('Unable to read configuration file. %s'%(e), 'fatal')
+        error('Unable to read configuration file. %s' % (e), 'fatal')
     except Exception, e:
-        error('An error occured when trying to read configuration file. %s'%(e), 'fatal')
+        error('An error occured reading configuration file. %s' % (e), 'fatal')
 
     parser = argparse.ArgumentParser(description="Internet Threat Monitor")
     parser.add_argument('--interval', metavar='SEC', help='Update interval. Use this to overrive the value in the configurations', default=config.get('general', 'update_interval'), type=int)
@@ -30,7 +31,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.flush_log:
-        flushlog()
+        flush_log()
 
     if args.debug:
         log('Starting TMON')

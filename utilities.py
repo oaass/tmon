@@ -2,30 +2,33 @@
 
 import datetime
 
-def log(message, severity = 'log'):
+
+def log(message, severity='log'):
     severity_levels = ['debug', 'warning', 'error', 'fatal', 'log']
-    if not severity in severity_levels:
+    if severity not in severity_levels:
         severity = 'UNKNOWN'
     timestamp = str(datetime.datetime.now()).split('.')[0]
-    message = '[%s] [%s] %s\n'%(timestamp, severity.upper(), message)
+    message = '[%s] [%s] %s\n' % (timestamp, severity.upper(), message)
     logfile = open('log.txt', 'a')
     logfile.write(message)
     logfile.close()
     if severity is 'fatal':
         log('Terminating program')
 
-def flushlog():
+
+def flush_log():
     logfile = open('log.txt', 'w')
     logfile.close()
 
+
 def error(message, type):
-    timestamp = str(datetime.datetime.now()).split('.')[0]
     fmt = "[!!] Fatal Error: %s" if type is 'fatal' else "[!] Error: %s"
-    print fmt%(message)
+    print fmt % (message)
     if type is 'fatal':
         exit(0)
 
-def getDefaultPortService(port):
+
+def get_default_port_service(port):
     services = {
         21: 'FTP',
         22: 'SSH',

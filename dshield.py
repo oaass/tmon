@@ -5,24 +5,26 @@ import requests
 import pygeoip
 import ConfigParser
 from IPy import IP
-from utilities import *
+from utilities import log
+from utilities import error
+
 
 class DShield():
 
     # DShield API URLs
-    URL_THREAT_LEVEL   = 'https://isc.sans.edu/api/infocon?json'
-    URL_TOP_PORTS      = 'https://isc.sans.edu/api/topports/records/%d?json'
-    URL_SOURCES        = 'https://isc.sans.edu/api/sources/%s/%d?json'
-    URL_IP_DETAILS     = 'https://isc.sans.edu/api/ip/%s?json'
+    URL_THREAT_LEVEL = 'https://isc.sans.edu/api/infocon?json'
+    URL_TOP_PORTS = 'https://isc.sans.edu/api/topports/records/%d?json'
+    URL_SOURCES = 'https://isc.sans.edu/api/sources/%s/%d?json'
+    URL_IP_DETAILS = 'https://isc.sans.edu/api/ip/%s?json'
 
     # Current DShield threat level
-    threat_level   = None
+    threat_level = None
 
     # List of top attacked ports
-    top_ports      = None
+    top_ports = None
 
     # List of sources
-    sources        = None
+    sources = None
 
     # List of attacking countries
     attacking_countries = None
@@ -31,7 +33,7 @@ class DShield():
     attacking_sources = None
 
     # If any of the tasks fails this will switch to True
-    failure        = False
+    failure = False
 
     # Instance of pygeoip
     geo = None
@@ -50,15 +52,15 @@ class DShield():
             log('User terminated session')
             exit(0)
         except ConfigParser.NoOptionError, e:
-            log('Configuration: %s'%(e), 'fatal')
-            error('%s'%(e), 'fatal')
+            log('Configuration: %s' % (e), 'fatal')
+            error('%s' % (e), 'fatal')
         except Exception, e:
             log('Unexpected error occured when trying to read geolocation filepath configurations.', 'error')
-            log('%s'%(e), 'fatal')
-            error('%s'%(e), 'fatal')
+            log('%s' % (e), 'fatal')
+            error('%s' % (e), 'fatal')
 
         if self.debug:
-            log("Initializing pygeoip.GeoIP with '%s'"%(geofile), 'debug')
+            log("Initializing pygeoip.GeoIP with '%s'" % (geofile), 'debug')
 
         try:
             self.geo = pygeoip.GeoIP(geofile)
@@ -67,14 +69,14 @@ class DShield():
             exit(0)
         except IOError, e:
             message = str(e).replace('[Errno 2] ', '')
-            log('%s'%(message), 'fatal')
-            error('%s'%(message), 'fatal')
+            log('%s' % (message), 'fatal')
+            error('%s' % (message), 'fatal')
         except Exception, e:
-            log('Unexpected error occured when trying to initialize pygeoip.GeoIP with %s'%(geofile), 'error')
-            log('%s'%(e), 'fatal')
-            error('%s'%(e), 'fatal')
+            log('Unexpected error occured when trying to initialize pygeoip.GeoIP with %s' % (geofile), 'error')
+            log('%s' % (e), 'fatal')
+            error('%s' % (e), 'fatal')
 
-    def getThreatLevel(self):
+    def get_threat_level(self):
         if self.debug:
             log('Trying to read current DShield threat level', 'debug')
         try:
@@ -87,14 +89,14 @@ class DShield():
             exit(0)
         except Exception, e:
             log('Failed reading threat level')
-            log("%s in 'DShield.getThreatLevel()'"%(e), 'error')
+            log("%s in 'DShield.get_threat_level()'" % (e), 'error')
             self.failure = True
 
-    def getTopPorts(self, limit=10):
+    def get_top_ports(self, limit=10):
         if self.debug:
             log('Trying to read top 10 attacked ports', 'debug')
         try:
-            response = requests.get(self.URL_TOP_PORTS%(limit))
+            response = requests.get(self.URL_TOP_PORTS % (limit))
             data = json.loads(response.text)
 
             self.top_ports = []
@@ -111,39 +113,39 @@ class DShield():
             exit(0)
         except Exception, e:
             log('Failed reading top attacked ports')
-            log("%s in 'DShield.getTopPorts()'"%(e), 'error')
+            log("%s in 'DShield.get_top_ports()'" % (e), 'error')
             self.failure = True
 
-    def getSources(self, column='attacks', limit=100):
+    def get_sources(self, column='attacks', limit=100):
         if self.debug:
             log('Trying to read attacking sources', 'debug')
         try:
-            response = requests.get(self.URL_SOURCES%(column, limit), headers={'User-Agent': 'Python Threat Monitor'})
+            response = requests.get(self.URL_SOURCES % (column, limit), headers={'User-Agent': 'Python Threat Monitor'})
             obj = json.loads(response.text)
 
             self.sources = []
             for id in obj:
                 try:
                     if id.isdigit():
-                        ip = self.sanitizeIp(obj[id]['ip'])
+                        ip = self.sanitize_ip(obj[id]['ip'])
                         if not IP(ip).iptype() is 'PUBLIC':
-                            log("Detected '%s' as a possible local IP. Manual inspection might be required"%(ip), 'warning')
+                            log("Detected '%s' as a possible local IP. Manual inspection might be required" % (ip), 'warning')
                         country = self.geo.record_by_name(ip)['country_name']
                         attacks = int(obj[id]['attacks'])
                         count = int(obj[id]['count'])
                         firstseen = obj[id]['firstseen']
                         lastseen = obj[id]['lastseen']
-                        self.sources.append((ip,country,attacks,count,firstseen,lastseen))
+                        self.sources.append((ip, country, attacks, count, firstseen, lastseen))
                 except KeyboardInterrupt:
                     log("User terminated session")
                     exit(0)
                 except TypeError, e:
                     log('Failed reading an attacking source')
-                    log("%s in 'DShield.getSources' (#1)"%(e), 'warning')
+                    log("%s in 'DShield.get_sources()' (#1)" % (e), 'warning')
                     self.failure = True
                 except Exception, e:
                     log('Failed reading an attacking source')
-                    log("%s in 'DShield.getSources' (#1)"%(e), 'error')
+                    log("%s in 'DShield.get_sources()' (#1)" % (e), 'error')
                     self.failure = True
                     exit(0)
 
@@ -154,10 +156,10 @@ class DShield():
             exit(0)
         except Exception, e:
             log('Failed reading sources')
-            log("%s in 'DShield.getSources()' (#2)"%(e), 'error')
+            log("%s in 'DShield.get_sources()' (#2)" % (e), 'error')
             self.failure = True
 
-    def getAttackingCountries(self):
+    def get_attacking_countries(self):
         if self.debug:
             log('Trying to read attacking countries', 'debug')
         try:
@@ -165,13 +167,13 @@ class DShield():
                 self.getSources()
 
             data = {}
-            for ip, country, attacks, count, firstseen, lastseen  in self.sources:
+            for ip, country, attacks, count, firstseen, lastseen in self.sources:
                 try:
                     data[country] += attacks
                 except:
                     data[country] = attacks
 
-            self.attacking_countries = sorted(data.items(), key=lambda x:x[1], reverse=True)
+            self.attacking_countries = sorted(data.items(), key=lambda x: x[1], reverse=True)
             return self.attacking_countries
 
         except KeyboardInterrupt:
@@ -179,10 +181,10 @@ class DShield():
             exit(0)
         except Exception, e:
             log('Failed reading attacking countries')
-            log("%s in 'DHsield.getAttackingCountries"%(e), 'error')
+            log("%s in 'DHsield.getAttackingCountries" % (e), 'error')
             self.failure = True
 
-    def getAttackingSources(self, limit):
+    def get_attacking_sources(self, limit):
         if self.debug:
             log('Trying to read additional information about attacking sources')
         try:
@@ -193,7 +195,7 @@ class DShield():
             for x in range(0, limit-1):
                 source = self.sources[x]
                 ip = source[0]
-                asname = self.getExtendedSourceInfo(ip, 'asname')
+                asname = self.get_extended_source_info(ip, 'asname')
                 if asname is None:
                     asname = 'N/A'
                 else:
@@ -206,17 +208,17 @@ class DShield():
                 data.append((ip, asname.strip(), country, attacks, firstseen, lastseen))
 
             log('Successfully read attacking sources')
-            self.attacking_sources = sorted(data, key=lambda x:x[3], reverse=True)
+            self.attacking_sources = sorted(data, key=lambda x: x[3], reverse=True)
             return self.attacking_sources
         except KeyboardInterrupt:
             log('User terminated session')
             exit(0)
         except Exception, e:
             log('Failed getting attacking sources')
-            log("%s in 'DShield.getAttackingSources'"%(e), 'error')
+            log("%s in 'DShield.get_attacking_sources()'" % (e), 'error')
             self.failure = True
 
-    def sanitizeIp(self, ip):
+    def sanitize_ip(self, ip):
         try:
             parts = ip.split('.')
             sanitized = []
@@ -229,24 +231,25 @@ class DShield():
             log('User terminated session')
             exit(0)
         except Exception, e:
-            log("Unexpected exception occured when trying to sanitize IP '%s'"%(ip), 'warning')
+            log("Unexpected exception occured when trying to sanitize IP '%s'" % (ip), 'warning')
+            log(str(e), 'warning')
             return ip
 
-    def getExtendedSourceInfo(self, source, field = None):
+    def get_extended_source_info(self, source, field=None):
         try:
-            log("Fetching extended information about '%s'"%(source), 'log')
-            response = requests.get(self.URL_IP_DETAILS%(source))
+            log("Fetching extended information about '%s'" % (source), 'log')
+            response = requests.get(self.URL_IP_DETAILS % (source))
             obj = json.loads(response.text)
 
-            if not field is None:
-                log("Successfully read '%s' for '%s'"%(field, source))
+            if field is not None:
+                log("Successfully read '%s' for '%s'" % (field, source))
             else:
-                log("Successfully read extended source info for '%s'"%(source))
-            return obj['ip'][field] if not field is None else obj
+                log("Successfully read extended source info for '%s'" % (source))
+            return obj['ip'][field] if field is not None else obj
         except KeyboardInterrupt:
             log('User terminated session')
             exit(0)
         except Exception, e:
             log('Failed getting extended source info')
-            log("%s in 'DShield.getExtendedSourceInfo'"%(e), 'error')
+            log("%s in 'DShield.get_extended_source_info()'" % (e), 'error')
             self.failure = True

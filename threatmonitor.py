@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import requests
 import dshield
 import datetime
 import os
@@ -10,7 +9,9 @@ import struct
 import sys
 from termcolor import colored
 from time import sleep
-from utilities import *
+from utilities import log
+from utilities import get_default_port_service
+
 
 class ThreatMonitor():
 
@@ -47,56 +48,41 @@ class ThreatMonitor():
         while True:
             try:
                 self.last_update = datetime.datetime.now()
-                self.next_update = self.last_update + datetime.timedelta(0, self.update_interval)
+                diff = datetime.timedelta(0, self.update_interval)
+                self.next_update = self.last_update + diff
                 self.last_update = str(self.last_update).split('.')[0]
                 self.next_update = str(self.next_update).split('.')[0]
                 # Update threat data
-                self.updateDShieldData()
+                self.update_dshield_data()
 
-                self.updateInterface()
+                self.update_interface()
                 sleep(self.update_interval)
 
             except KeyboardInterrupt:
                 log('User terminated session')
                 exit(0)
 
-    def getDefaultPortService(self, port):
-        if self.debug:
-            log("Attempting to find default service for port '%s'"%(port), 'debug')
-        try:
-            service = getDefaultPortService(port)
-            if self.debug:
-                log("Default service for port '%s' is '%s'"%(port, service), 'debug')
-        except:
-            service = 'N/A'
-            if self.debug:
-                log("Unable to find default service for port '%s'"%(port), 'debug')
-        return service
-
-    def snapshot(self):
-        pass
-
-    def updateDShieldData(self):
+    def update_dshield_data(self):
         if self.debug:
             log('Resetting failure state', 'debug')
         self.isc.failure = False
         log('Reading threat level from DSheild')
-        self.isc.getThreatLevel()
+        self.isc.get_threat_level()
         log('Reading top attacked ports')
-        self.isc.getTopPorts()
+        self.isc.get_top_ports()
         log('Reading unique sources')
-        self.isc.getSources()
+        self.isc.get_sources()
         log('Reading attacking countries')
-        self.isc.getAttackingCountries()
+        self.isc.get_attacking_countries()
         log('Reading top 20 attacking sources')
-        self.isc.getAttackingSources(20)
+        self.isc.get_attacking_sources(20)
 
-    def updateInterface(self):
+    def update_interface(self):
         self.banner()
         width = self.get_terminal_width()
         print
-        print "[+] Last update: %s"%(self.last_update)
-        print "[+] Next update: %s"%(self.next_update)
+        print "[+] Last update: %s" % (self.last_update)
+        print "[+] Next update: %s" % (self.next_update)
 
         if self.isc.failure is True:
             print
@@ -104,7 +90,7 @@ class ThreatMonitor():
 
         print
         print "[+] Current threat levels"
-        print "    [+] DShield ISC: %s"%(colored(self.isc.threat_level, self.isc.threat_level))
+        print "    [+] DShield ISC: %s" % (colored(self.isc.threat_level, self.isc.threat_level))
         print
         print colored("Top 10 targeted ports                         | Top 10 attacking countries".ljust(width), 'yellow', attrs=['reverse', 'bold'])
         print "Port    Records    Service                    | Country                 Attacks"
@@ -116,10 +102,10 @@ class ThreatMonitor():
         for x in range(0, 9):
             port = ports[x][0]
             attacks = ports[x][1]
-            service = self.getDefaultPortService(int(ports[x][0]))
+            service = get_default_port_service(int(ports[x][0]))
             country = countries[x][0]
             attacks = countries[x][1]
-            print "%s %s %s | %s %s"%(port.ljust(7), str(attacks).ljust(10), service.ljust(26), country.ljust(23), attacks)
+            print "%s %s %s | %s %s" % (port.ljust(7), str(attacks).ljust(10), service.ljust(26), country.ljust(23), attacks)
 
         print
         print colored("Top 20 attacking sources".ljust(width), 'yellow', attrs=['reverse', 'bold'])
@@ -130,7 +116,7 @@ class ThreatMonitor():
             print colored('Unable to successfully fetch additional information about unique attacking sources', 'red')
         else:
             for ip, asname, country, attacks, firstseen, lastseen in self.isc.attacking_sources:
-                print "%s | %s | %s | %s  | %s | %s"%(ip.ljust(15), asname.ljust(37), country.ljust(19), str(attacks).ljust(6), firstseen.ljust(10), lastseen.ljust(10))
+                print "%s | %s | %s | %s  | %s | %s" % (ip.ljust(15), asname.ljust(37), country.ljust(19), str(attacks).ljust(6), firstseen.ljust(10), lastseen.ljust(10))
 
         print "----------------+---------------------------------------+---------------------+---------+------------+".ljust(width, '-')
 
@@ -157,9 +143,10 @@ class ThreatMonitor():
             width = 999
 
         return width
+
     def banner(self):
         self.clearScreen()
         width = self.get_terminal_width()
         print "-"*width
-        print "- Internet Threat Monitor v%s (by Ole Aass)"%(self.version)
+        print "- Internet Threat Monitor v%s (by Ole Aass)" % (self.version)
         print "-"*width
