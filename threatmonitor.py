@@ -10,7 +10,13 @@ import sys
 from termcolor import colored
 from time import sleep
 from utilities import log
+from utilities import error
+from utilities import debug
+from utilities import warning
+from utilities import fatal
+from utilities import stdout
 from utilities import get_default_port_service
+from constants import *
 
 
 class ThreatMonitor():
@@ -26,7 +32,7 @@ class ThreatMonitor():
 
     def __init__(self, args, config):
         if args.debug:
-            log('Setting up environment in threatmonitor.ThreatMonitor', 'debug')
+            log(LOG_ENV_SETUP, ['threatmonitor.ThreatMonitor'], 'debug')
         self.update_interval = args.interval
         self.config = config
         self.debug = args.debug
@@ -34,17 +40,16 @@ class ThreatMonitor():
         self.banner()
 
         print
-        print "[+] Fetching data... Please wait as this can take some time..."
-        print "[+] To follow the process please tail the log file"
+        stdout('[*] Initializing... Please wait as this can take some time...')
+        stdout('[+] To follow the process please tail the log file')
 
         if self.debug:
-            log('Loading DShield API class', 'debug')
-
+            debug(LOG_LOADING_CLASS, ['DShield'])
         self.isc = dshield.DShield(config, self.debug)
 
     def monitor(self):
 
-        log('Initializing monitor session')
+        log(LOG_INITIALIZE, ['monitor session'])
         while True:
             try:
                 self.last_update = datetime.datetime.now()
@@ -59,66 +64,84 @@ class ThreatMonitor():
                 sleep(self.update_interval)
 
             except KeyboardInterrupt:
-                log('User terminated session')
+                log(LOG_USER_CANCELED_PROCESS)
                 exit(0)
 
     def update_dshield_data(self):
-        if self.debug:
-            log('Resetting failure state', 'debug')
+        log(LOG_RESETTING, ['failure state'])
         self.isc.failure = False
-        log('Reading threat level from DSheild')
+
+        log(LOG_FETCH_DATA, ['top attacked ports'])
         self.isc.get_threat_level()
-        log('Reading top attacked ports')
+
+        log(LOG_FETCH_DATA, ['top attacked ports'])
         self.isc.get_top_ports()
-        log('Reading unique sources')
+
+        log(LOG_FETCH_DATA, ['unique sources'])
         self.isc.get_sources()
-        log('Reading attacking countries')
+
+        log(LOG_FETCH_DATA, ['attacking countries'])
         self.isc.get_attacking_countries()
-        log('Reading top 20 attacking sources')
+
+        log(LOG_FETCH_DATA, ['top 20 attacking sources'])
         self.isc.get_attacking_sources(20)
 
     def update_interface(self):
         self.banner()
         width = self.get_terminal_width()
         print
-        print "[+] Last update: %s" % (self.last_update)
-        print "[+] Next update: %s" % (self.next_update)
+        stdout('[+] Last update: {0}', [self.last_update])
+        stdout('[+] Next update: {0}', [self.next_update])
 
         if self.isc.failure is True:
             print
-            print colored("[!] Errors was detected. Errors can be found in the log.", "yellow")
+
+            error(ERROR_DETECTED)
 
         print
-        print "[+] Current threat levels"
-        print "    [+] DShield ISC: %s" % (colored(self.isc.threat_level, self.isc.threat_level))
+        stdout(IFACE_THREAT_LEVEL_TITLE)
+        dshield_level = colored(self.isc.threat_level, self.isc.threat_level)
+        stdout(IFACE_THREAT_DSHIELD_LEVEL, [dshield_level])
         print
-        print colored("Top 10 targeted ports                         | Top 10 attacking countries".ljust(width), 'yellow', attrs=['reverse', 'bold'])
-        print "Port    Records    Service                    | Country                 Attacks"
-        print "----------------------------------------------+".ljust(width, '-')
-
+        attrs = {'color': 'yellow', 'attrs':['reverse', 'bold']}
+        stdout(IFACE_HEADER_TOP_TEN.ljust((width - 64) + 13), [
+            'Top 10 ports', 'Top 10 attackers'], attrs)
+        stdout(IFACE_TOP_TEN_COLUMNS, [
+            'Port', 'Records', 'Service', 'Country', 'Attacks'])
+        print "{0:-<46}+{1:-<{2}}".format('-', '-', (width - 47))
         ports = self.isc.top_ports
         countries = self.isc.attacking_countries
 
         for x in range(0, 9):
-            port = ports[x][0]
-            attacks = ports[x][1]
+            port = ports[x][0].ljust(7)
+            port_attacks = str(ports[x][1]).ljust(10)
             service = get_default_port_service(int(ports[x][0]))
-            country = countries[x][0]
-            attacks = countries[x][1]
-            print "%s %s %s | %s %s" % (port.ljust(7), str(attacks).ljust(10), service.ljust(26), country.ljust(23), attacks)
+            service = service.ljust(26)
+            country = countries[x][0].ljust(23)
+            country_attacks = countries[x][1]
+            stdout(IFACE_PORTS_AND_COUNTRIES, [
+                port, port_attacks, service, country, country_attacks])
 
         print
-        print colored("Top 20 attacking sources".ljust(width), 'yellow', attrs=['reverse', 'bold'])
-        print "Source          | ASName                                | Country             | Attacks | First seen | Last seen"
-        print "----------------+---------------------------------------+---------------------+---------+------------+".ljust(width, '-')
+        attrs = {'color': 'yellow', 'attrs':['reverse', 'bold']}
+        stdout(IFACE_HEADER_TOP_SOURCES.ljust(width), attrs=attrs)
+        stdout(IFACE_TOP_SOURCES_COLUMNS, [
+            'Source', 'Country', 'Attacks', 'First seen', 'Last seen'])
+        print "".ljust(width, '-')
 
         if self.isc.attacking_sources is None:
             print colored('Unable to successfully fetch additional information about unique attacking sources', 'red')
         else:
-            for ip, asname, country, attacks, firstseen, lastseen in self.isc.attacking_sources:
-                print "%s | %s | %s | %s  | %s | %s" % (ip.ljust(15), asname.ljust(37), country.ljust(19), str(attacks).ljust(6), firstseen.ljust(10), lastseen.ljust(10))
+            for ip, country, attacks, firstseen, lastseen in self.isc.attacking_sources:
+                ip = ip.ljust(18)
+                country = country.ljust(19)
+                attacks = str(attacks).ljust(10)
+                firstseen = firstseen.ljust(15)
+                lastseen = lastseen
+                stdout(IFACE_SOURCES, [
+                    ip, country, attacks, firstseen, lastseen])
 
-        print "----------------+---------------------------------------+---------------------+---------+------------+".ljust(width, '-')
+        print "".ljust(width, '-')
 
         pass
 

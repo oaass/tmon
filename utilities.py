@@ -1,32 +1,46 @@
 #!/usr/bin/env python
 
 import datetime
-from termcolor import colored
 import sys
+from termcolor import colored
 
-def log(message, severity='log'):
+
+def log(message, replace=[], severity='log'):
     severity_levels = ['debug', 'warning', 'error', 'fatal', 'log']
     if severity not in severity_levels:
         severity = 'UNKNOWN'
     timestamp = str(datetime.datetime.now()).split('.')[0]
-    message = '[%s] [%s] %s\n' % (timestamp, severity.upper(), message)
+    message = message.format(*replace)
+    logmessage = '[%s] [%s] %s\n' % (timestamp, severity.upper(), message)
     logfile = open('log.txt', 'a')
-    logfile.write(message)
+    logfile.write(logmessage)
     logfile.close()
-    if severity is 'fatal':
-        log('Terminating program')
+
+
+def debug(message, replace=[]):
+    log(message, replace, 'debug')
+
+
+def warning(message, replace=[]):
+    log(message, replace, 'warning')
+
+
+def error(message, replace=[]):
+    log(message, replace, 'error')
+    output = message.format(*replace)
+    stdout('[!] Error: {0}', [output], 'red')
+
+
+def fatal(message, replace=[]):
+    log(message, replace, 'fatal')
+    output = message.format(*replace)
+
+    exit(0)
 
 
 def flush_log():
     logfile = open('log.txt', 'w')
     logfile.close()
-
-
-def error(message, type):
-    fmt = "[!!] Fatal Error: %s" if type is 'fatal' else "[!] Error: %s"
-    print fmt % (message)
-    if type is 'fatal':
-        exit(0)
 
 
 def get_default_port_service(port):
@@ -63,11 +77,17 @@ def get_default_port_service(port):
         return 'N/A'
 
 
-def stdout(message, replace=[], attrs={'color': None}):
+def stdout(message, replace=None, attrs={'color': None, 'attrs': None}):
 
-    output = message.format(*replace)
+    if replace is not None:
+        output = '%s' % (message.format(*replace))
+    else:
+        output = '%s' % (message)
 
     if attrs['color'] is not None:
-        output = colored(output, attrs['color'])
+        if attrs['attrs'] is not None:
+            output = colored(output, attrs['color'], attrs=attrs['attrs'])
+        else:
+            outpuy = colored(output, attrs['color'])
 
-    sys.stdout.write(output)
+    print output

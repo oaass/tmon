@@ -6,6 +6,8 @@ import ConfigParser
 from utilities import log
 from utilities import flush_log
 from utilities import error
+from utilities import stdout
+from constants import *
 
 
 def main(args, config):
@@ -34,5 +36,5 @@ if __name__ == '__main__':
         flush_log()
 
     if args.debug:
-        log('Starting TMON')
+        log(LOG_STARTUP)
     main(args, config)

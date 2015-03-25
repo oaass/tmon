@@ -195,20 +195,14 @@ class DShield():
             for x in range(0, limit-1):
                 source = self.sources[x]
                 ip = source[0]
-                asname = self.get_extended_source_info(ip, 'asname')
-                if asname is None:
-                    asname = 'N/A'
-                else:
-                    asname = asname if len(asname) < 35 else asname[:32] + '...'
-
                 country = source[1] if len(source[1]) < 19 else source[1][:15] + '...'
                 attacks = int(source[2])
                 firstseen = source[4]
                 lastseen = source[5]
-                data.append((ip, asname.strip(), country, attacks, firstseen, lastseen))
+                data.append((ip, country, attacks, firstseen, lastseen))
 
             log('Successfully read attacking sources')
-            self.attacking_sources = sorted(data, key=lambda x: x[3], reverse=True)
+            self.attacking_sources = sorted(data, key=lambda x: x[2], reverse=True)
             return self.attacking_sources
         except KeyboardInterrupt:
             log('User terminated session')
