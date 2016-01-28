@@ -47,9 +47,9 @@ Before you can use start using TMon you need to do the following
                    configurations
 --flush-log        Flush log on start
 --debug            Enable debug mode
---max-ports #      Max number of ports to display (Default: 10)
---max-ips #        Max number of sources to display (Default: 5)
---max-countries #  Max number of countries to display (Default: 10)
+--max-ports #      Max number of ports to display
+--max-ips #        Max number of sources to display
+--max-countries #  Max number of countries to display
 ```
 
 ## Usage
