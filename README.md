@@ -62,14 +62,17 @@ usage: tmon.py [-h] [--interval SEC] [--flush-log] [--debug] [--max-ports #]
 
 ## Screenshot
 
-![Image](http://imagizer.imageshack.com/img673/8217/HwMyZb.png)
+![Image](http://storage7.static.itmages.com/i/16/0128/h_1454024438_1719060_e9ad168018.png)
+![Image](http://storage9.static.itmages.com/i/16/0128/h_1454024480_4034880_f736634ae7.png)
+![Image](http://storage1.static.itmages.com/i/16/0128/h_1454024503_7360893_985cc4ea2a.png)
 
 ## Change log
 
 **2016-01-28** - *v1.0*
----
+```
 [+] Fixed bugs
 [+] Added new command line options
+```
 
 **2015-03-16** - *v0.1-alpha*
 ```
