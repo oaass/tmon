@@ -109,13 +109,13 @@ class ThreatMonitor():
         print "    [+] DShield ISC: %s"%(colored(self.isc.threat_level, self.isc.threat_level))
         print
         print colored("Top %d targeted ports                         | Top %d attacking countries".ljust(width)%(self.args.max_ports, self.args.max_countries), 'yellow', attrs=['reverse', 'bold'])
-        print "Port    Records    Service                    | Country                 Attacks"
+        print "Port    Attacks    Service                    | Country                 Attacks"
         print "----------------------------------------------+".ljust(width, '-')
 
         ports = self.isc.top_ports
         countries = self.isc.attacking_countries
 
-        for x in range(0, self.args.max_ports-1):
+        for x in range(0, self.args.max_ports):
             if x < self.args.max_ports:
                 port = ports[x][0]
                 records = ports[x][1]

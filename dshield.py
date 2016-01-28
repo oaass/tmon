@@ -106,7 +106,7 @@ class DShield():
             data = json.loads(response.text)
 
             self.top_ports = []
-            for x in range(0, limit-1):
+            for x in range(0, limit):
                 x = str(x)
                 port = data[x]['targetport']
                 attacks = data[x]['records']
