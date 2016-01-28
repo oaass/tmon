@@ -50,13 +50,14 @@ Before you can use start using TMon you need to do the following
 --max-ports #      Max number of ports to display
 --max-ips #        Max number of sources to display
 --max-countries #  Max number of countries to display
+--status-only      Only display current threat status
 ```
 
 ## Usage
 
 ```
 usage: tmon.py [-h] [--interval SEC] [--flush-log] [--debug] [--max-ports #]
-               [--max-ips #] [--max-countries #]
+               [--max-ips #] [--max-countries #] [--status-only]
 ```
 
 ## Screenshot
