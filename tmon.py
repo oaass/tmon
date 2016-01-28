@@ -30,6 +30,7 @@ if __name__ == '__main__':
     parser.add_argument('--max-ports', metavar='#', help='Max number of ports to display', default=config.get('general', 'max_ports'), type=int)
     parser.add_argument('--max-ips', metavar='#', help='Max number of sources to display', default=config.get('general', 'max_ips'), type=int)
     parser.add_argument('--max-countries', metavar='#', help='Max number of countries to display', default=config.get('general', 'max_countries'), type=int)
+    parser.add_argument('--status-only', help='Only display current threat status', action='store_true')
     args = parser.parse_args()
 
     if args.flush_log:

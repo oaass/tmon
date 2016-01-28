@@ -31,11 +31,13 @@ class ThreatMonitor():
         self.debug = args.debug
         self.args = args
 
-        self.banner()
+        self.banner(self.args.status_only)
 
-        print
-        print "[+] Fetching data... Please wait as this can take some time..."
-        print "[+] To follow the process please tail the log file"
+        if self.args.status_only is False:
+
+            print
+            print "[+] Fetching data... Please wait as this can take some time..."
+            print "[+] To follow the process please tail the log file"
 
         if self.debug:
             log('Loading DShield API class', 'debug')
@@ -83,30 +85,38 @@ class ThreatMonitor():
         self.isc.failure = False
         log('Reading threat level from DSheild')
         self.isc.getThreatLevel()
-        log('Reading top %d attacked ports'%(self.args.max_ports))
-        self.isc.getTopPorts(self.args.max_ports)
-        log('Reading unique sources')
-        self.isc.getSources()
-        log('Reading top %d attacking countries'%(self.args.max_countries))
-        self.isc.getAttackingCountries(self.args.max_countries)
-        if self.args.max_ips > 0:
-            log('Reading top %d attacking sources'%(self.args.max_ips))
-            self.isc.getAttackingSources(self.args.max_ips)
+        
+        if self.args.status_only is False:
+            log('Reading top %d attacked ports'%(self.args.max_ports))
+            self.isc.getTopPorts(self.args.max_ports)
+            log('Reading unique sources')
+            self.isc.getSources()
+            log('Reading top %d attacking countries'%(self.args.max_countries))
+            self.isc.getAttackingCountries(self.args.max_countries)
+            if self.args.max_ips > 0:
+                log('Reading top %d attacking sources'%(self.args.max_ips))
+                self.isc.getAttackingSources(self.args.max_ips)
 
     def updateInterface(self):
-        self.banner()
         width = self.get_terminal_width()
-        print
-        print "[+] Last update: %s"%(self.last_update)
-        print "[+] Next update: %s"%(self.next_update)
-
-        if self.isc.failure is True:
+        if self.args.status_only is False:
+            self.banner(self.args.status)
             print
-            print colored("[!] Errors was detected. Details can be found in the log.", "yellow")
+            print "[+] Last update: %s"%(self.last_update)
+            print "[+] Next update: %s"%(self.next_update)
 
-        print
+            if self.isc.failure is True:
+                print
+                print colored("[!] Errors was detected. Details can be found in the log.", "yellow")
+
+            print
+        
         print "[+] Current threat levels"
         print "    [+] DShield ISC: %s"%(colored(self.isc.threat_level, self.isc.threat_level))
+
+        if self.args.status_only:
+            exit(0)
+
         print
         print colored("Top %d targeted ports                         | Top %d attacking countries".ljust(width)%(self.args.max_ports, self.args.max_countries), 'yellow', attrs=['reverse', 'bold'])
         print "Port    Attacks    Service                    | Country                 Attacks"
@@ -178,9 +188,14 @@ class ThreatMonitor():
             width = 999
 
         return width
-    def banner(self):
-        self.clearScreen()
-        width = self.get_terminal_width()
-        print "-"*width
-        print "- Internet Threat Monitor v%s (by Ole Aass)"%(self.version)
-        print "-"*width
+    def banner(self, simple):
+        if simple:
+            print
+            print "Internet Threat Monitor v%s (by Ole Aass)"%(self.version)
+            print
+        else:
+            self.clearScreen()
+            width = self.get_terminal_width()
+            print "-"*width
+            print "- Internet Threat Monitor v%s (by Ole Aass)"%(self.version)
+            print "-"*width

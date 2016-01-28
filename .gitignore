@@ -1,3 +1,4 @@
 config.cfg
 log.txt
 *.pyc
+*.swp
