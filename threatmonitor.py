@@ -100,7 +100,7 @@ class ThreatMonitor():
     def updateInterface(self):
         width = self.get_terminal_width()
         if self.args.status_only is False:
-            self.banner(self.args.status)
+            self.banner(self.args.status_only)
             print
             print "[+] Last update: %s"%(self.last_update)
             print "[+] Next update: %s"%(self.next_update)
