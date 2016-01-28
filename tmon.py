@@ -27,9 +27,9 @@ if __name__ == '__main__':
     parser.add_argument('--interval', metavar='SEC', help='Update interval. Use this to overrive the value in the configurations', default=config.get('general', 'update_interval'), type=int)
     parser.add_argument('--flush-log', help='Flush log on start', action='store_true')
     parser.add_argument('--debug', help='Enable debug mode', action='store_true')
-    parser.add_argument('--max-ports', metavar='#', help='Max number of ports to display (Default: 10)', default=10, type=int)
-    parser.add_argument('--max-ips', metavar='#', help='Max number of sources to display (Default: 5)', default=5, type=int)
-    parser.add_argument('--max-countries', metavar='#', help='Max number of countries to display (Default: 10)', default=10, type=int)
+    parser.add_argument('--max-ports', metavar='#', help='Max number of ports to display', default=config.get('general', 'max_ports'), type=int)
+    parser.add_argument('--max-ips', metavar='#', help='Max number of sources to display', default=config.get('general', 'max_ips'), type=int)
+    parser.add_argument('--max-countries', metavar='#', help='Max number of countries to display', default=config.get('general', 'max_countries'), type=int)
     args = parser.parse_args()
 
     if args.flush_log:
