@@ -42,17 +42,21 @@ Before you can use start using TMon you need to do the following
 ## Options
 
 ```
-  -h, --help      show this help message and exit
-  --interval SEC  Update interval. Use this to overrive the value in the
-                  configurations
-  --flush-log     Flush log on start
-  --debug         Enable debug mode
+-h, --help         show this help message and exit
+--interval SEC     Update interval. Use this to overrive the value in the
+                   configurations
+--flush-log        Flush log on start
+--debug            Enable debug mode
+--max-ports #      Max number of ports to display (Default: 10)
+--max-ips #        Max number of sources to display (Default: 5)
+--max-countries #  Max number of countries to display (Default: 10)
 ```
 
 ## Usage
 
 ```
-python tmon.py [-h] [--interval SECONDS] [--snapshot] [--flush-log] [--debug]
+usage: tmon.py [-h] [--interval SEC] [--flush-log] [--debug] [--max-ports #]
+               [--max-ips #] [--max-countries #]
 ```
 
 ## Screenshot
@@ -60,6 +64,11 @@ python tmon.py [-h] [--interval SECONDS] [--snapshot] [--flush-log] [--debug]
 ![Image](http://imagizer.imageshack.com/img673/8217/HwMyZb.png)
 
 ## Change log
+
+**2016-01-28** - *v1.0-beta*
+---
+[+] Fixed bugs
+[+] Added new command line options
 
 **2015-03-16** - *v0.1-alpha*
 ```

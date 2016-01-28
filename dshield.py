@@ -78,6 +78,10 @@ class DShield():
         if self.debug:
             log('Trying to read current DShield threat level', 'debug')
         try:
+
+            if self.debug:
+                log('Requesting URL %s'%(self.URL_THREAT_LEVEL), 'debug')
+
             response = requests.get(self.URL_THREAT_LEVEL)
             self.threat_level = json.loads(response.text)['status']
             log('Successfully read threat level')
@@ -92,8 +96,12 @@ class DShield():
 
     def getTopPorts(self, limit=10):
         if self.debug:
-            log('Trying to read top 10 attacked ports', 'debug')
+            log('Trying to read top %d attacked ports'%(limit), 'debug')
         try:
+
+            if self.debug:
+                log('Requesting URL %s'%(self.URL_TOP_PORTS%(limit)), 'debug')
+
             response = requests.get(self.URL_TOP_PORTS%(limit))
             data = json.loads(response.text)
 
@@ -118,32 +126,33 @@ class DShield():
         if self.debug:
             log('Trying to read attacking sources', 'debug')
         try:
+
+            if self.debug:
+                log('Requesting URL %s'%(self.URL_SOURCES%(column, limit)), 'debug')
+
             response = requests.get(self.URL_SOURCES%(column, limit), headers={'User-Agent': 'Python Threat Monitor'})
             obj = json.loads(response.text)
-
+            
             self.sources = []
-            for id in obj:
+            for id in range(0, len(obj)):
                 try:
-                    if id.isdigit():
-                        ip = self.sanitizeIp(obj[id]['ip'])
-                        if not IP(ip).iptype() is 'PUBLIC':
-                            log("Detected '%s' as a possible local IP. Manual inspection might be required"%(ip), 'warning')
-                        country = self.geo.record_by_name(ip)['country_name']
-                        attacks = int(obj[id]['attacks'])
-                        count = int(obj[id]['count'])
-                        firstseen = obj[id]['firstseen']
-                        lastseen = obj[id]['lastseen']
-                        self.sources.append((ip,country,attacks,count,firstseen,lastseen))
+                    ip = self.sanitizeIp(obj[id]['ip'])
+                    if not IP(ip).iptype() is 'PUBLIC':
+                        log("Detected '%s' as a possible local IP. Manual inspection might be required"%(ip), 'warning')
+                    country = self.geo.record_by_name(ip)['country_name']
+                    attacks = int(obj[id]['attacks'])
+                    count = int(obj[id]['count'])
+                    firstseen = obj[id]['firstseen']
+                    lastseen = obj[id]['lastseen']
+                    self.sources.append((ip,country,attacks,count,firstseen,lastseen))
                 except KeyboardInterrupt:
                     log("User terminated session")
                     exit(0)
                 except TypeError, e:
-                    log('Failed reading an attacking source')
-                    log("%s in 'DShield.getSources' (#1)"%(e), 'warning')
-                    self.failure = True
+                    country = ''
                 except Exception, e:
                     log('Failed reading an attacking source')
-                    log("%s in 'DShield.getSources' (#1)"%(e), 'error')
+                    log("%s in 'DShield.getSources' (#3)"%(e), 'error')
                     self.failure = True
                     exit(0)
 
@@ -154,10 +163,10 @@ class DShield():
             exit(0)
         except Exception, e:
             log('Failed reading sources')
-            log("%s in 'DShield.getSources()' (#2)"%(e), 'error')
+            log("%s in 'DShield.getSources()' (#4)"%(e), 'error')
             self.failure = True
 
-    def getAttackingCountries(self):
+    def getAttackingCountries(self, limit=10):
         if self.debug:
             log('Trying to read attacking countries', 'debug')
         try:
@@ -182,7 +191,7 @@ class DShield():
             log("%s in 'DHsield.getAttackingCountries"%(e), 'error')
             self.failure = True
 
-    def getAttackingSources(self, limit):
+    def getAttackingSources(self, limit=10):
         if self.debug:
             log('Trying to read additional information about attacking sources')
         try:
@@ -190,7 +199,7 @@ class DShield():
                 self.getSources()
 
             data = []
-            for x in range(0, limit-1):
+            for x in range(0, limit):
                 source = self.sources[x]
                 ip = source[0]
                 asname = self.getExtendedSourceInfo(ip, 'asname')
@@ -235,6 +244,10 @@ class DShield():
     def getExtendedSourceInfo(self, source, field = None):
         try:
             log("Fetching extended information about '%s'"%(source), 'log')
+
+            if self.debug:
+                log('Requesting URL %s'%(self.URL_IP_DETAILS%(source)), 'debug')
+
             response = requests.get(self.URL_IP_DETAILS%(source))
             obj = json.loads(response.text)
 

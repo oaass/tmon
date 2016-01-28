@@ -21,7 +21,7 @@ class ThreatMonitor():
     config = None
 
     # Current version of TMon
-    version = '0.1-alpha'
+    version = '1.0'
 
     def __init__(self, args, config):
         if args.debug:
@@ -29,6 +29,7 @@ class ThreatMonitor():
         self.update_interval = args.interval
         self.config = config
         self.debug = args.debug
+        self.args = args
 
         self.banner()
 
@@ -82,14 +83,15 @@ class ThreatMonitor():
         self.isc.failure = False
         log('Reading threat level from DSheild')
         self.isc.getThreatLevel()
-        log('Reading top attacked ports')
-        self.isc.getTopPorts()
+        log('Reading top %d attacked ports'%(self.args.max_ports))
+        self.isc.getTopPorts(self.args.max_ports)
         log('Reading unique sources')
         self.isc.getSources()
-        log('Reading attacking countries')
-        self.isc.getAttackingCountries()
-        log('Reading top 20 attacking sources')
-        self.isc.getAttackingSources(20)
+        log('Reading top %d attacking countries'%(self.args.max_countries))
+        self.isc.getAttackingCountries(self.args.max_countries)
+        if self.args.max_ips > 0:
+            log('Reading top %d attacking sources'%(self.args.max_ips))
+            self.isc.getAttackingSources(self.args.max_ips)
 
     def updateInterface(self):
         self.banner()
@@ -100,39 +102,58 @@ class ThreatMonitor():
 
         if self.isc.failure is True:
             print
-            print colored("[!] Errors was detected. Errors can be found in the log.", "yellow")
+            print colored("[!] Errors was detected. Details can be found in the log.", "yellow")
 
         print
         print "[+] Current threat levels"
         print "    [+] DShield ISC: %s"%(colored(self.isc.threat_level, self.isc.threat_level))
         print
-        print colored("Top 10 targeted ports                         | Top 10 attacking countries".ljust(width), 'yellow', attrs=['reverse', 'bold'])
+        print colored("Top %d targeted ports                         | Top %d attacking countries".ljust(width)%(self.args.max_ports, self.args.max_countries), 'yellow', attrs=['reverse', 'bold'])
         print "Port    Records    Service                    | Country                 Attacks"
         print "----------------------------------------------+".ljust(width, '-')
 
         ports = self.isc.top_ports
         countries = self.isc.attacking_countries
 
-        for x in range(0, 9):
-            port = ports[x][0]
-            attacks = ports[x][1]
-            service = self.getDefaultPortService(int(ports[x][0]))
-            country = countries[x][0]
-            attacks = countries[x][1]
-            print "%s %s %s | %s %s"%(port.ljust(7), str(attacks).ljust(10), service.ljust(26), country.ljust(23), attacks)
+        for x in range(0, self.args.max_ports-1):
+            if x < self.args.max_ports:
+                port = ports[x][0]
+                records = ports[x][1]
+                service = self.getDefaultPortService(int(ports[x][0]))
+            else:
+                port = ''
+                records = ''
+                service = ''
 
-        print
-        print colored("Top 20 attacking sources".ljust(width), 'yellow', attrs=['reverse', 'bold'])
-        print "Source          | ASName                                | Country             | Attacks | First seen | Last seen"
-        print "----------------+---------------------------------------+---------------------+---------+------------+".ljust(width, '-')
+            try:
+                if countries[x] is not None:
+                    if x < self.args.max_countries:
+                        country = countries[x][0]
+                        attacks = countries[x][1]
+                    else:
+                        country = ''
+                        attacks = ''
+            except:
+                country = ''
+                attacks = ''
 
-        if self.isc.attacking_sources is None:
-            print colored('Unable to successfully fetch additional information about unique attacking sources', 'red')
+            print "%s %s %s | %s %s"%(port.ljust(7), str(records).ljust(10), service.ljust(26), country.ljust(23), attacks)
+
+        if self.args.max_ips == 0:
+            print "----------------------------------------------+".ljust(width, '-')
         else:
-            for ip, asname, country, attacks, firstseen, lastseen in self.isc.attacking_sources:
-                print "%s | %s | %s | %s  | %s | %s"%(ip.ljust(15), asname.ljust(37), country.ljust(19), str(attacks).ljust(6), firstseen.ljust(10), lastseen.ljust(10))
+            print
+            print colored("Top %d attacking IPs".ljust(width)%(self.args.max_ips), 'yellow', attrs=['reverse', 'bold'])
+            print "Source          | ASName                                | Country             | Attacks | First seen | Last seen"
+            print "----------------+---------------------------------------+---------------------+---------+------------+".ljust(width, '-')
 
-        print "----------------+---------------------------------------+---------------------+---------+------------+".ljust(width, '-')
+            if self.isc.attacking_sources is None:
+                print colored('Unable to successfully fetch additional information about unique attacking IPs', 'red')
+            else:
+                for ip, asname, country, attacks, firstseen, lastseen in self.isc.attacking_sources:
+                    print "%s | %s | %s | %s  | %s | %s"%(ip.ljust(15), asname.ljust(37), country.ljust(19), str(attacks).ljust(6), firstseen.ljust(10), lastseen.ljust(10))
+
+            print "----------------+---------------------------------------+---------------------+---------+------------+".ljust(width, '-')
 
         pass
 
