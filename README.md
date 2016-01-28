@@ -1,7 +1,7 @@
 TMon - Internet Threat Monitor
 ===
 
-TMon is a small tool which monitors the current online threat levels. It has a green, yellow, red level indicator, and information about top 10 attacked ports and countries. It also provides information about the top 20 unique attacking sources (IPs)
+TMon is a small tool which monitors the current online threat levels. It has a green, yellow, red level indicator, and information about top attacked ports and countries. It also provides information about the unique attacking sources (IPs)
 
 The script gathers its information from the [DShield API](https://isc.sans.edu/api/) provided by SANS.
 
@@ -65,7 +65,7 @@ usage: tmon.py [-h] [--interval SEC] [--flush-log] [--debug] [--max-ports #]
 
 ## Change log
 
-**2016-01-28** - *v1.0-beta*
+**2016-01-28** - *v1.0*
 ---
 [+] Fixed bugs
 [+] Added new command line options
