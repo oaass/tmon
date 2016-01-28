@@ -191,11 +191,13 @@ class ThreatMonitor():
     def banner(self, simple):
         if simple:
             print
-            print "Internet Threat Monitor v%s (by Ole Aass)"%(self.version)
+            print "Internet Threat Monitor v%s"%(self.version)
+            print "by Ole Aass"
             print
         else:
             self.clearScreen()
             width = self.get_terminal_width()
             print "-"*width
-            print "- Internet Threat Monitor v%s (by Ole Aass)"%(self.version)
+            print "- Internet Threat Monitor v%s"%(self.version)
+            print "- by Ole Aass"
             print "-"*width
