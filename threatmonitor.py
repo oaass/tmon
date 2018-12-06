@@ -147,7 +147,7 @@ class ThreatMonitor():
                 country = ''
                 attacks = ''
 
-            print "%s %s %s | %s %s"%(port.ljust(7), str(records).ljust(10), service.ljust(26), country.ljust(23), attacks)
+            print "%s %s %s | %s %s"%(str(port).ljust(7), str(records).ljust(10), service.ljust(26), country.ljust(23), attacks)
 
         if self.args.max_ips == 0:
             print "----------------------------------------------+".ljust(width, '-')
