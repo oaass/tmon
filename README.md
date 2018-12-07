@@ -62,8 +62,8 @@ usage: tmon.py [-h] [--interval SEC] [--flush-log] [--debug] [--max-ports #]
 
 ## Screenshot
 
-![Image](https://imgur.com/zGVvUGh)
-![Image](https://imgur.com/kBjtYmB)
+![Image](https://imgur.com/zGVvUGh.png)
+![Image](https://imgur.com/kBjtYmB.png)
 
 ## Change log
 
